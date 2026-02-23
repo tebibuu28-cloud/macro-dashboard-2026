@@ -19,4 +19,5 @@ if MY_NEWS_KEY !="0SYM2E4LAG7AHT2K":
     except Exception as e:
         st.error("Could not load news at this moment.")
 else:
-    st.info("💡 To see live news, replace "0SYM2E4LAG7AHT2K" in the code with your real Finnhub API key.")
+   # RIGHT (Single quotes on the outside, Double on the inside):
+st.info('💡 To see live news, replace "0SYM2E4LAG7AHT2K" in the code with your real Finnhub API key.')
