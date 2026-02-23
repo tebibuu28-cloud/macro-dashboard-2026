@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
+import requests
 import plotly.graph_objects as go
-from alpha_vantage.cryptocurrencies import CryptoCurrencies
-from alpha_vantage.commodities import Commodities
 
 # --- SETUP ---
 st.set_page_config(page_title="2026 Alpha Terminal", layout="wide")
@@ -10,29 +9,28 @@ st.title("🏦 2026 Alpha Terminal")
 
 AV_KEY = "0SYM2E4LAG7AHT2K"
 
-@st.cache_data(ttl=3600) # Only asks the API once per hour
+@st.cache_data(ttl=3600)
 def get_macro_data():
     try:
-        # 1. Fetch Bitcoin
-        cc = CryptoCurrencies(key=AV_KEY, output_format='pandas')
-        btc_data, _ = cc.get_digital_currency_daily(symbol='BTC', market='USD')
+        # 1. Fetch Bitcoin (using direct URL)
+        btc_url = f'https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol=BTC&market=USD&apikey={AV_KEY}'
+        btc_resp = requests.get(btc_url).json()
         
-        # FIX: Find the 'close' column regardless of its exact name
-        # We look for a column that contains the word 'close'
-        btc_col = [c for c in btc_data.columns if 'close' in c.lower()][0]
-        btc_price = float(btc_data[btc_col].iloc[0])
+        # Get the latest date's closing price
+        # Alpha Vantage JSON keys are usually 'Time Series (Digital Currency Daily)'
+        latest_date = list(btc_resp['Time Series (Digital Currency Daily)'].keys())[0]
+        btc_price = float(btc_resp['Time Series (Digital Currency Daily)'][latest_date]['4b. close (USD)'])
         
-        # 2. Fetch Gold
-        com = Commodities(key=AV_KEY, output_format='pandas')
-        gold_data = com.get_gold(interval='daily')
+        # 2. Fetch Gold (using direct URL)
+        gold_url = f'https://www.alphavantage.co/query?function=GOLD&interval=daily&apikey={AV_KEY}'
+        gold_resp = requests.get(gold_url).json()
         
-        # FIX: Commodities usually return a column named 'value'
-        gold_price = float(gold_data['value'].iloc[0])
+        # Gold JSON returns a list under 'data'
+        gold_price = float(gold_resp['data'][0]['value'])
         
         return btc_price, gold_price
     except Exception as e:
-        # This will help us debug if names change again
-        st.error(f"Error details: {e}")
+        st.error(f"Waiting for API... (Error: {e})")
         return None, None
 
 # --- EXECUTION ---
@@ -47,12 +45,15 @@ if btc_p and gold_p:
     c2.metric("Bitcoin Price", f"${btc_p:,.2f}")
     c3.metric("Gold Price", f"${gold_p:,.2f}")
 
-    # Visual Gauge
-    
-    
     if ratio <= 11.0:
-        st.success("🚨 BUY SIGNAL: Ratio is at the 11.0 floor!")
+        st.success("🚨 BUY SIGNAL: Ratio reached the 11.0 floor!")
     else:
-        st.info(f"HOLD: Ratio is {ratio:.2f}. Waiting for 11.0.")
+        st.info(f"HOLD: Ratio is {ratio:.2f}. Target buy zone is 11.0.")
+        
+    # Simple Chart using the prices we just got
+    st.write("Current Ratio Health:")
+    st.progress(min(1.0, 11.0/ratio)) 
+    st.caption("Bar fills as we get closer to the 11.0 BUY signal.")
+
 else:
-    st.warning("⚠️ Waiting for API limit to reset or check connection.")
+    st.warning("⚠️ Daily API limit reached or system is cooling down. Try again in a few minutes.")
