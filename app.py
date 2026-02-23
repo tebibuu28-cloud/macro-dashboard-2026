@@ -10,8 +10,8 @@ st.sidebar.header("Data Settings")
 mode = st.sidebar.radio("Choose Mode:", ["Manual Entry (Backup)", "Live API"])
 
 # Your Keys
-AV_KEY = "0SYM2E4LAG7AHT2K"      # For Prices
-FINNHUB_KEY = "d6e21d1r01qmepi1ggag" # For News (Replace this when you have it)
+AV_KEY = "0SYM2E4LAG7AHT2K"      # Your Alpha Vantage Key (Prices)
+FINNHUB_KEY = "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g" # Your NEW Finnhub Key (News)
 
 # --- 3. PRICE LOGIC ---
 if mode == "Manual Entry (Backup)":
