@@ -2,22 +2,20 @@
 st.divider()
 st.subheader("📰 2026 Macro News Feed")
 
-# PASTE YOUR KEY INSIDE THE QUOTES BELOW
+# Replace this with your actual Finnhub key inside the quotes
 MY_NEWS_KEY = "0SYM2E4LAG7AHT2K" 
 
-if MY_NEWS_KEY !="0SYM2E4LAG7AHT2K":
-    news_url = f"https://finnhub.io/api/v1/news?category=general&token={MY_NEWS_KEY}"
+if MY_NEWS_KEY != "YOUR_FINNHUB_KEY_HERE":
     try:
+        news_url = f"https://finnhub.io/api/v1/news?category=general&token={MY_NEWS_KEY}"
         response = requests.get(news_url)
-        news_data = response.json()[:5] # This grabs the top 5 stories
+        news_data = response.json()[:5]
         
         for item in news_data:
-            # This creates a clickable dropdown for each headline
             with st.expander(item['headline']):
                 st.write(item['summary'])
-                st.caption(f"Source: {item['source']} | [Read Full Article]({item['url']})")
+                st.caption(f"Source: {item['source']} | [Read Full]({item['url']})")
     except Exception as e:
-        st.error("Could not load news at this moment.")
+        st.error("News Feed busy...")
 else:
-   # RIGHT (Single quotes on the outside, Double on the inside):
-st.info('💡 To see live news, replace "0SYM2E4LAG7AHT2K" in the code with your real Finnhub API key.')
+    st.info('💡 To see live news, replace "YOUR_FINNHUB_KEY_HERE" in the code with your real Finnhub API key.')
