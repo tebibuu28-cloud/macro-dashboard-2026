@@ -3,83 +3,82 @@ import requests
 import pandas as pd
 from datetime import datetime
 
-# --- 1. SETUP ---
-st.set_page_config(page_title="2026 Alpha Terminal", layout="wide")
-st.title("🏦 2026 Alpha Terminal")
+# --- 1. SETUP & THEME ---
+st.set_page_config(page_title="2026 Alpha Terminal", layout="wide", page_icon="🏦")
+st.title("🏦 2026 Alpha Terminal Pro")
 
-# Keys
 FINNHUB_KEY = "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g" 
 
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# --- 2. SIDEBAR & INPUTS ---
-st.sidebar.header("Data Settings")
-mode = st.sidebar.radio("Choose Mode:", ["Manual Entry (Backup)", "Live API"])
+# --- 2. SIDEBAR: MACO CLOCK & INPUTS ---
+st.sidebar.header("🕒 Macro Clock")
+# 2028 Halving Estimate (Approx April 2028)
+halving_date = datetime(2028, 4, 20)
+days_to_halving = (halving_date - datetime.now()).days
+st.sidebar.metric("Days to 2028 Halving", f"{days_to_halving}")
+
+st.sidebar.divider()
+mode = st.sidebar.radio("Price Source:", ["Manual Entry (Backup)", "Live API"])
 
 if mode == "Manual Entry (Backup)":
-    st.info("🛠️ Manual Mode Active")
-    btc_p = st.number_input("Bitcoin Price ($)", value=65000.0)
-    gold_p = st.number_input("Gold Price ($)", value=5100.0)
+    btc_p = st.sidebar.number_input("BTC Price ($)", value=65000.0)
+    gold_p = st.sidebar.number_input("Gold Price ($)", value=5100.0)
 else:
-    st.warning("API Mode: Limit check active.")
-    btc_p, gold_p = None, None
+    btc_p, gold_p = 65000.0, 5100.0 # Placeholder for API logic
 
-# --- 4. CALCULATION & ADVANCED INTELLIGENCE ---
+# --- 3. CORE METRICS ---
 if btc_p and gold_p:
     ratio = round(btc_p / gold_p, 2)
     oz_gold = round(1 / (gold_p / btc_p), 2)
 
-    # 4-Column Metric Bar
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("BTC/Gold Ratio", f"{ratio}")
-    m2.metric("BTC Price", f"${btc_p:,.0f}")
-    m3.metric("Gold Price", f"${gold_p:,.0f}")
-    m4.metric("BTC in Gold Oz", f"{oz_gold} oz")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("BTC/Gold Ratio", f"{ratio}")
+    col2.metric("BTC Price", f"${btc_p:,.0f}")
+    col3.metric("Gold Price", f"${gold_p:,.0f}")
+    col4.metric("BTC Value (Oz)", f"{oz_gold} oz")
+
+    # --- 4. OPPORTUNITY CALCULATOR ---
+    st.write("### 💰 Opportunity Cost Calculator")
+    invest_amt = st.number_input("Enter Investment Amount ($)", value=1000)
+    c_gold, c_btc = st.columns(2)
+    c_gold.write(f"**Gold Buy:** {round(invest_amt/gold_p, 3)} oz")
+    c_btc.write(f"**BTC Buy:** {round(invest_amt/btc_p, 5)} BTC")
 
     st.divider()
 
-    # --- NEW: SENTIMENT & RISK SECTION ---
-    col_risk, col_fng = st.columns([2, 1])
-
-    with col_risk:
-        st.write("### 🧠 Alpha Intelligence")
-        # Logic-based advice
-        if ratio <= 11.5:
-            st.success("💎 **STRONG BUY ZONE**: Ratio is at historical floor. Purchasing power of BTC is low relative to Gold.")
-        elif ratio >= 18.0:
-            st.warning("⚠️ **CAUTION**: Bitcoin is overextended vs Gold. Potential for local top.")
-        else:
-            st.info("⚖️ **NEUTRAL**: Market is in consolidation. No major signal.")
-
-    with col_fng:
-        st.write("### 🎭 Market Mood")
-        try:
-            fng_res = requests.get("https://api.alternative.me/fng/").json()
-            fng_val = fng_res['data'][0]['value']
-            fng_text = fng_res['data'][0]['value_classification']
-            st.metric("Fear & Greed", f"{fng_val}/100", fng_text)
-        except:
-            st.write("Sentiment data paused.")
-
-    # --- LOGGING & CHARTING ---
-    if st.button("📌 Log & Update Trend"):
-        now = datetime.now().strftime("%H:%M")
-        st.session_state.history.append({"Time": now, "Ratio": ratio, "Target": 11.0})
+    # --- 5. LOGGING & MOMENTUM CHART ---
+    col_btn, col_chart = st.columns([1, 3])
     
-    if len(st.session_state.history) > 1:
-        st.line_chart(pd.DataFrame(st.session_state.history).set_index('Time')[['Ratio', 'Target']])
+    with col_btn:
+        st.write("### ✍️ Log Actions")
+        if st.button("📌 Log Point"):
+            now = datetime.now().strftime("%H:%M")
+            st.session_state.history.append({"Time": now, "Ratio": ratio, "Target": 11.0})
+        
+        if st.session_state.history:
+            df_hist = pd.DataFrame(st.session_state.history)
+            # Simple RSI-style Alert
+            if len(df_hist) > 3:
+                recent_change = df_hist['Ratio'].iloc[-1] - df_hist['Ratio'].iloc[-3]
+                if recent_change < -1.0:
+                    st.warning("⚡ MOMENTUM ALERT: Ratio dropping fast. Watch for bounce.")
 
-# --- 5. NEWS SECTION ---
+    with col_chart:
+        if len(st.session_state.history) > 1:
+            st.line_chart(pd.DataFrame(st.session_state.history).set_index('Time')[['Ratio', 'Target']])
+        else:
+            st.info("Log 2+ points to see trend.")
+
+# --- 6. 2026 MACRO NEWS ---
 st.divider()
 st.subheader("📰 2026 Macro News Feed")
 try:
-    # Adding a news categories check
-    news_url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}"
-    news_data = requests.get(news_url).json()[:5]
+    news_data = requests.get(f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}").json()[:5]
     for item in news_data:
         with st.expander(item.get('headline')):
             st.write(item.get('summary'))
-            st.caption(f"Source: {item.get('source')} | [Read Full]({item.get('url')})")
+            st.caption(f"Source: {item.get('source')} | [Link]({item.get('url')})")
 except:
-    st.error("News Feed busy.")
+    st.error("News feed connection lost.")
