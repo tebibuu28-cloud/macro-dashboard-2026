@@ -2,7 +2,32 @@ import streamlit as st
 import requests
 
 # --- 1. SETUP & IMPORTS ---
-st.set_page_config(page_title="2026 Alpha Terminal", layout="wide")
+# --- 5. NEWS SECTION ---
+st.divider()
+st.subheader("📰 2026 Macro News Feed")
+
+FINNHUB_KEY = "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g"
+
+if FINNHUB_KEY and FINNHUB_KEY != "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g":
+    try:
+        news_url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}"
+        response = requests.get(news_url, timeout=10)
+        
+        if response.status_code == 200:
+            news_data = response.json()[:5]
+            if news_data:
+                for item in news_data:
+                    with st.expander(item.get('headline', 'News Alert')):
+                        st.write(item.get('summary', 'No summary available.'))
+                        st.caption(f"Source: {item.get('source')} | [Read Full]({item.get('url')})")
+            else:
+                st.write("No fresh news stories found.")
+        else:
+            st.error(f"Finnhub Error: {response.status_code}")
+    except Exception as e:
+        st.error(f"News System Busy: {e}")
+else:
+    st.info("💡 Enter your Finnhub Key in the code to see live news.")
 st.title("🏦 2026 Alpha Terminal")
 
 # --- 2. DATA SOURCE SETTINGS ---
