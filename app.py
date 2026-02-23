@@ -25,62 +25,61 @@ else:
     st.warning("API Mode: Limit check active.")
     btc_p, gold_p = None, None
 
-# --- 4. CALCULATION & DISPLAY ---
+# --- 4. CALCULATION & ADVANCED INTELLIGENCE ---
 if btc_p and gold_p:
     ratio = round(btc_p / gold_p, 2)
-    
-    # PASTE THE NEW "Macro Mood" & "Gold Ounces" CODE HERE
-    oz_gold = round(1 / (gold_p / btc_p), 2) 
+    oz_gold = round(1 / (gold_p / btc_p), 2)
 
-   # --- 4. CALCULATION & DISPLAY ---
-if btc_p and gold_p:
-    ratio = round(btc_p / gold_p, 2)
-    
-    # PASTE THE NEW "Macro Mood" & "Gold Ounces" CODE HERE
-    oz_gold = round(1 / (gold_p / btc_p), 2) 
-
-    # Layout for 4 Metrics (Updating the old 3-column layout)
+    # 4-Column Metric Bar
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("BTC/Gold Ratio", f"{ratio}")
     m2.metric("BTC Price", f"${btc_p:,.0f}")
     m3.metric("Gold Price", f"${gold_p:,.0f}")
-    m4.metric("BTC Value in Oz", f"{oz_gold} oz")
+    m4.metric("BTC in Gold Oz", f"{oz_gold} oz")
 
-    st.write("---")
-    # ... (Rest of the Intelligence and Chart logic)
-    st.write("---")
-    # ... (Rest of the Intelligence and Chart logic)
-    # Logging Logic
-    if st.button("📌 Log Ratio & Update Chart"):
-        now = datetime.now().strftime("%H:%M:%S")
+    st.divider()
+
+    # --- NEW: SENTIMENT & RISK SECTION ---
+    col_risk, col_fng = st.columns([2, 1])
+
+    with col_risk:
+        st.write("### 🧠 Alpha Intelligence")
+        # Logic-based advice
+        if ratio <= 11.5:
+            st.success("💎 **STRONG BUY ZONE**: Ratio is at historical floor. Purchasing power of BTC is low relative to Gold.")
+        elif ratio >= 18.0:
+            st.warning("⚠️ **CAUTION**: Bitcoin is overextended vs Gold. Potential for local top.")
+        else:
+            st.info("⚖️ **NEUTRAL**: Market is in consolidation. No major signal.")
+
+    with col_fng:
+        st.write("### 🎭 Market Mood")
+        try:
+            fng_res = requests.get("https://api.alternative.me/fng/").json()
+            fng_val = fng_res['data'][0]['value']
+            fng_text = fng_res['data'][0]['value_classification']
+            st.metric("Fear & Greed", f"{fng_val}/100", fng_text)
+        except:
+            st.write("Sentiment data paused.")
+
+    # --- LOGGING & CHARTING ---
+    if st.button("📌 Log & Update Trend"):
+        now = datetime.now().strftime("%H:%M")
         st.session_state.history.append({"Time": now, "Ratio": ratio, "Target": 11.0})
-        st.toast("Point added to chart!")
-
-    # --- THE CHART ---
+    
     if len(st.session_state.history) > 1:
-        st.write("### 📈 Ratio Trend vs. Buy Signal (11.0)")
-        chart_data = pd.DataFrame(st.session_state.history)
-        # Set 'Time' as the index so it shows on the X-axis
-        chart_data.set_index('Time', inplace=True)
-        st.line_chart(chart_data[['Ratio', 'Target']])
-    else:
-        st.info("💡 Log at least 2 points to see the trend line.")
+        st.line_chart(pd.DataFrame(st.session_state.history).set_index('Time')[['Ratio', 'Target']])
 
-    # Buy/Hold Logic
-    if ratio <= 11.0:
-        st.success("🚨 BUY SIGNAL!")
-    else:
-        st.info(f"HOLD: Target 11.0. Gap: {round(ratio - 11.0, 2)}")
-
-# --- 4. NEWS SECTION ---
+# --- 5. NEWS SECTION ---
 st.divider()
 st.subheader("📰 2026 Macro News Feed")
 try:
+    # Adding a news categories check
     news_url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}"
     news_data = requests.get(news_url).json()[:5]
     for item in news_data:
         with st.expander(item.get('headline')):
             st.write(item.get('summary'))
-            st.caption(f"Source: {item.get('source')} | [Link]({item.get('url')})")
+            st.caption(f"Source: {item.get('source')} | [Read Full]({item.get('url')})")
 except:
-    st.error("News busy...")
+    st.error("News Feed busy.")
