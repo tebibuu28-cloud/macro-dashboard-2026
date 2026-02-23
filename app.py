@@ -32,6 +32,13 @@ if btc_p and gold_p:
     # PASTE THE NEW "Macro Mood" & "Gold Ounces" CODE HERE
     oz_gold = round(1 / (gold_p / btc_p), 2) 
 
+   # --- 4. CALCULATION & DISPLAY ---
+if btc_p and gold_p:
+    ratio = round(btc_p / gold_p, 2)
+    
+    # PASTE THE NEW "Macro Mood" & "Gold Ounces" CODE HERE
+    oz_gold = round(1 / (gold_p / btc_p), 2) 
+
     # Layout for 4 Metrics (Updating the old 3-column layout)
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("BTC/Gold Ratio", f"{ratio}")
@@ -39,6 +46,8 @@ if btc_p and gold_p:
     m3.metric("Gold Price", f"${gold_p:,.0f}")
     m4.metric("BTC Value in Oz", f"{oz_gold} oz")
 
+    st.write("---")
+    # ... (Rest of the Intelligence and Chart logic)
     st.write("---")
     # ... (Rest of the Intelligence and Chart logic)
     # Logging Logic
