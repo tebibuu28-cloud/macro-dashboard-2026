@@ -6,6 +6,36 @@ import requests
 st.divider()
 st.subheader("📰 2026 Macro News Feed")
 
+# Your verified key
+FINNHUB_KEY = "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g"
+
+try:
+    # We call the Finnhub API directly
+    news_url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}"
+    response = requests.get(news_url, timeout=10)
+    
+    if response.status_code == 200:
+        news_data = response.json()
+        
+        # We only show news if there's actually data inside
+        if len(news_data) > 0:
+            for item in news_data[:5]: # Show top 5
+                with st.expander(item.get('headline', 'Market Update')):
+                    st.write(item.get('summary', 'Summary not provided.'))
+                    st.caption(f"Source: {item.get('source')} | [Read Full Story]({item.get('url')})")
+        else:
+            st.info("The news feed is empty right now. Try again in a few minutes.")
+    elif response.status_code == 401:
+        st.error("API Error: Your Finnhub key is invalid or not yet active.")
+    else:
+        st.error(f"Finnhub Server is busy (Error {response.status_code})")
+
+except Exception as e:
+    # This catches internet connection issues or typos
+    st.error(f"Could not connect to news: {e}")# --- 5. NEWS SECTION ---
+st.divider()
+st.subheader("📰 2026 Macro News Feed")
+
 FINNHUB_KEY = "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g"
 
 if FINNHUB_KEY and FINNHUB_KEY != "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g":
