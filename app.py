@@ -184,3 +184,87 @@ with t3:
     st.write("### 🚀 Penny Stock Watchlist")
     st.markdown("- **FIRST TIN (LSE:1SN):** 16.1p (Tin production surge)")
     st.markdown("- **DINGDONG (DDL):** $2.83 (Asia e-commerce momentum)")
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from datetime import datetime
+import feedparser # Ensure: pip install feedparser
+
+# --- 1. CONFIG & STYLING ---
+st.set_page_config(page_title="2026 Alpha Sovereign Hub", layout="wide", page_icon="🌎")
+
+st.markdown("""
+    <style>
+    .stApp { background-color: #05070a; color: #ffffff; }
+    .news-card { background: #11141b; padding: 10px; border-radius: 5px; border-left: 3px solid #00d4ff; margin-bottom: 8px; }
+    .risk-high { color: #ff4b4b; font-weight: bold; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 2. LIVE NEWS SCRAPER ENGINE (FEB 23, 2026) ---
+def get_live_sentiment():
+    # In a real app, this would use a financial news API. 
+    # For our 2026 terminal, we simulate the current Feb 23 triggers.
+    headlines = [
+        {"text": "ASX turns down after Trump's tariff move", "sentiment": -0.8, "country": "AUS"},
+        {"text": "Indonesia current account hits US$2.5bn deficit", "sentiment": -0.9, "country": "IDN"},
+        {"text": "Seoul stocks open sharply higher on tech gains", "sentiment": 0.7, "country": "KOR"},
+        {"text": "Gold surges past $5,170 on trade uncertainty", "sentiment": 0.5, "country": "USA"}
+    ]
+    return headlines
+
+# --- 3. DYNAMIC RISK DATA ---
+risk_df = pd.DataFrame({
+    'Country': ['USA', 'CHN', 'IND', 'IDN', 'AUS', 'KOR', 'DEU', 'BRA'],
+    'Risk_Score': [3.2, 4.1, 1.8, 4.5, 3.1, 2.1, 2.8, 3.5], # IDN & AUS updated based on Feb 23 news
+    'Focus': ['Tariff Policy', 'Debt Strain', 'Growth Hub', 'Account Deficit', 'Trade Shock', 'Tech Alpha', 'Energy Pivot', 'Commodity Bull']
+})
+
+# --- 4. HEADER & MACRO METRICS ---
+st.title("🏛️ Universal Alpha: Sovereign Command")
+st.caption(f"Terminal Status: ONLINE | Today: February 23, 2026")
+
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("S&P 500", "6,883.80", "-0.7%")
+m2.metric("BTC/USD", "$64,568", "-4.5%")
+m3.metric("Gold Spot", "$5,170", "+2.1%")
+m4.metric("IDN Current Acc.", "-$2.5bn", "CRISIS")
+
+st.divider()
+
+# --- 5. GLOBAL RISK MAP & NEWS FEED ---
+col_map, col_news = st.columns([2, 1])
+
+with col_map:
+    st.subheader("🌐 Sovereign Risk Heatmap")
+    fig = px.choropleth(risk_df, locations="Country", color="Risk_Score",
+                        hover_name="Focus", color_continuous_scale="RdYlGn_r", range_color=[1, 5])
+    fig.update_layout(geo=dict(bgcolor='rgba(0,0,0,0)'), paper_bgcolor='rgba(0,0,0,0)', font_color="white")
+    st.plotly_chart(fig, use_container_width=True)
+
+with col_news:
+    st.subheader("📰 Sentiment Scraper")
+    for news in get_live_sentiment():
+        color = "red" if news['sentiment'] < 0 else "green"
+        st.markdown(f"<div class='news-card'><b>[{news['country']}]</b> {news['text']} <br> <span style='color:{color}'>Impact: {news['sentiment']}</span></div>", unsafe_allow_html=True)
+
+# --- 6. MACRO STRATEGY & SIMULATOR ---
+st.divider()
+t1, t2 = st.tabs(["🤖 Agentic Reasoning", "🔄 Auto-Trade Sim"])
+
+with t1:
+    st.write("### 🧠 AI Strategy Engine")
+    st.info("**Macro Alert:** The current account deficit in Indonesia and tariff shocks in Australia are creating a 'Flight to Quality' toward the USD and Gold. High-conviction trade: Short AUD/USD at 0.6450.")
+    st.table(pd.DataFrame({
+        "Region": ["Asia-Pacific", "Americas", "Europe"],
+        "GDP Trend": ["Divergent (IND vs IDN)", "Policy Volatility", "Stagnant"],
+        "Action": ["Buy India / Short Indonesia", "Hedge with Gold", "Short EUR"]
+    }))
+
+with t2:
+    st.write("### 💸 Contrarian Simulator")
+    cap = st.number_input("Capital ($)", value=10000)
+    if st.button("Execute 'Fear' Buy"):
+        st.success(f"Strategy Result: ${cap * 2.14:,.2f} (+114%)")
+        st.caption("Purchased BTC $64,568 during Feb 23 panic.")
