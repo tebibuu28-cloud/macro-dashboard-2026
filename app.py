@@ -3,9 +3,9 @@ st.divider()
 st.subheader("📰 2026 Macro News Feed")
 
 # PASTE YOUR KEY INSIDE THE QUOTES BELOW
-MY_NEWS_KEY = 0SYM2E4LAG7AHT2K 
+MY_NEWS_KEY = "0SYM2E4LAG7AHT2K" 
 
-if MY_NEWS_KEY != 0SYM2E4LAG7AHT2K:
+if MY_NEWS_KEY !="0SYM2E4LAG7AHT2K":
     news_url = f"https://finnhub.io/api/v1/news?category=general&token={MY_NEWS_KEY}"
     try:
         response = requests.get(news_url)
@@ -19,4 +19,4 @@ if MY_NEWS_KEY != 0SYM2E4LAG7AHT2K:
     except Exception as e:
         st.error("Could not load news at this moment.")
 else:
-    st.info("💡 To see live news, replace 0SYM2E4LAG7AHT2K' in the code with your real Finnhub API key.")
+    st.info("💡 To see live news, replace "0SYM2E4LAG7AHT2K" in the code with your real Finnhub API key.")
