@@ -3,82 +3,87 @@ import requests
 import pandas as pd
 from datetime import datetime
 
-# --- 1. SETUP & THEME ---
+# --- 1. SETUP & DARK THEME INJECTION ---
 st.set_page_config(page_title="2026 Alpha Terminal", layout="wide", page_icon="🏦")
+
+# Injecting some CSS to make the interface feel more "Pro"
+st.markdown("""
+    <style>
+    .stApp { background-color: #0e1117; }
+    [data-testid="stMetricValue"] { font-size: 1.8rem; color: #00d4ff; }
+    </style>
+    """, unsafe_allow_html=True)
+
 st.title("🏦 2026 Alpha Terminal Pro")
 
+# Keys & State
 FINNHUB_KEY = "d6e21d1r01qmepi1gg90d6e21d1r01qmepi1gg9g" 
-
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# --- 2. SIDEBAR: MACO CLOCK & INPUTS ---
+# --- 2. SIDEBAR: MACRO CLOCK ---
 st.sidebar.header("🕒 Macro Clock")
-# 2028 Halving Estimate (Approx April 2028)
 halving_date = datetime(2028, 4, 20)
-days_to_halving = (halving_date - datetime.now()).days
-st.sidebar.metric("Days to 2028 Halving", f"{days_to_halving}")
-
+days_left = (halving_date - datetime.now()).days
+st.sidebar.metric("Days to 2028 Halving", f"{days_left}")
 st.sidebar.divider()
-mode = st.sidebar.radio("Price Source:", ["Manual Entry (Backup)", "Live API"])
 
+mode = st.sidebar.radio("Price Source:", ["Manual Entry (Backup)", "Live API"])
 if mode == "Manual Entry (Backup)":
     btc_p = st.sidebar.number_input("BTC Price ($)", value=65000.0)
     gold_p = st.sidebar.number_input("Gold Price ($)", value=5100.0)
 else:
-    btc_p, gold_p = 65000.0, 5100.0 # Placeholder for API logic
+    # Static fallback for API mode
+    btc_p, gold_p = 65000.0, 5100.0 
 
-# --- 3. CORE METRICS ---
+# --- 3. CORE METRICS & CALCULATOR ---
 if btc_p and gold_p:
     ratio = round(btc_p / gold_p, 2)
-    oz_gold = round(1 / (gold_p / btc_p), 2)
+    oz_gold = round(btc_p / gold_p, 2)
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("BTC/Gold Ratio", f"{ratio}")
-    col2.metric("BTC Price", f"${btc_p:,.0f}")
-    col3.metric("Gold Price", f"${gold_p:,.0f}")
-    col4.metric("BTC Value (Oz)", f"{oz_gold} oz")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("BTC/Gold Ratio", f"{ratio}")
+    m2.metric("BTC Price", f"${btc_p:,.0f}")
+    m3.metric("Gold Price", f"${gold_p:,.0f}")
+    m4.metric("1 BTC Buys", f"{oz_gold} oz")
 
-    # --- 4. OPPORTUNITY CALCULATOR ---
+    st.divider()
+    
+    # Opportunity Cost Section
     st.write("### 💰 Opportunity Cost Calculator")
-    invest_amt = st.number_input("Enter Investment Amount ($)", value=1000)
+    invest = st.number_input("How much USD are you investing?", value=1000)
     c_gold, c_btc = st.columns(2)
-    c_gold.write(f"**Gold Buy:** {round(invest_amt/gold_p, 3)} oz")
-    c_btc.write(f"**BTC Buy:** {round(invest_amt/btc_p, 5)} BTC")
+    c_gold.info(f"Gold Quantity: **{round(invest/gold_p, 3)} oz**")
+    c_btc.success(f"BTC Quantity: **{round(invest/btc_p, 5)} BTC**")
 
     st.divider()
 
-    # --- 5. LOGGING & MOMENTUM CHART ---
-    col_btn, col_chart = st.columns([1, 3])
+    # --- 4. THE PRO CHART (AREA STYLE) ---
+    col_log, col_chart = st.columns([1, 3])
     
-    with col_btn:
-        st.write("### ✍️ Log Actions")
+    with col_log:
+        st.write("### ✍️ Log Data")
         if st.button("📌 Log Point"):
-            now = datetime.now().strftime("%H:%M")
+            now = datetime.now().strftime("%H:%M:%S")
             st.session_state.history.append({"Time": now, "Ratio": ratio, "Target": 11.0})
-        
-        if st.session_state.history:
-            df_hist = pd.DataFrame(st.session_state.history)
-            # Simple RSI-style Alert
-            if len(df_hist) > 3:
-                recent_change = df_hist['Ratio'].iloc[-1] - df_hist['Ratio'].iloc[-3]
-                if recent_change < -1.0:
-                    st.warning("⚡ MOMENTUM ALERT: Ratio dropping fast. Watch for bounce.")
+            st.toast("Point Logged!")
 
     with col_chart:
         if len(st.session_state.history) > 1:
-            st.line_chart(pd.DataFrame(st.session_state.history).set_index('Time')[['Ratio', 'Target']])
+            chart_df = pd.DataFrame(st.session_state.history).set_index('Time')
+            # Custom 2026 Palette: Neon Blue (#00d4ff) and Gold (#ffcc00)
+            st.area_chart(chart_df[['Ratio', 'Target']], color=["#00d4ff", "#ffcc00"])
         else:
-            st.info("Log 2+ points to see trend.")
+            st.info("Log 2 points to see the professional trend chart.")
 
-# --- 6. 2026 MACRO NEWS ---
+# --- 5. NEWS SECTION ---
 st.divider()
 st.subheader("📰 2026 Macro News Feed")
 try:
-    news_data = requests.get(f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}").json()[:5]
-    for item in news_data:
-        with st.expander(item.get('headline')):
+    news = requests.get(f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_KEY}").json()[:5]
+    for item in news:
+        with st.expander(item.get('headline', 'Market Update')):
             st.write(item.get('summary'))
             st.caption(f"Source: {item.get('source')} | [Link]({item.get('url')})")
 except:
-    st.error("News feed connection lost.")
+    st.error("News connection paused.")
