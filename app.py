@@ -6,6 +6,7 @@ from datetime import datetime
 # --- 1. PRO UI THEMING ---
 st.set_page_config(page_title="2026 Alpha Terminal", layout="wide", page_icon="🕵️")
 
+# CSS Injection - Fixed Syntax
 st.markdown("""
     <style>
     .stApp { background-color: #05070a; color: #ffffff; }
@@ -14,7 +15,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. LOGIC & DATA SIMULATION ---
+# --- 2. LOGIC & DATA ---
 if 'history' not in st.session_state:
     st.session_state.history = []
 
@@ -26,9 +27,9 @@ ratio = round(btc_p / gold_p, 2)
 # --- 3. THE AGENTIC ENGINE ---
 st.title("🏦 Alpha Terminal: Agentic Intelligence")
 
-# Smart Money Flow Simulation (A 2026 Pro Metric)
-smf_score = round(np.random.uniform(45, 85), 2) # Institutional accumulation score
-volatility = "HIGH" if abs(btc_p - 68000) > 1000 else "STABLE"
+# 2026 Metrics
+smf_score = round(np.random.uniform(45, 85), 2) 
+volatility = "HIGH" if abs(btc_p - 68000) > 2000 else "STABLE"
 
 col1, col2, col3, col4 = st.columns(4)
 with col1:
@@ -36,51 +37,44 @@ with col1:
 with col2:
     st.metric("Smart Money Flow", f"{smf_score}%", "Institutional Buy" if smf_score > 60 else "Retail Lead")
 with col3:
-    st.metric("Market Volatility", volatility, delta_color="inverse")
+    st.metric("Market Volatility", volatility)
 with col4:
-    # 2026 Agentic Decision
-    decision = "ACCUMULATE" if ratio < 12.5 and smf_score > 65 else "HEDGE (GOLD)"
+    decision = "ACCUMULATE" if ratio < 13.5 and smf_score > 65 else "HEDGE (GOLD)"
     st.metric("Agentic Signal", decision)
 
 st.divider()
 
-# --- 4. SMART MONEY & VOLATILITY ANALYSIS ---
+# --- 4. SMART MONEY & CHARTING ---
 st.write("### 🧠 AI Agent Reasoning")
 c_logic, c_chart = st.columns([1, 2])
 
 with c_logic:
-    st.info(f"**Agent ID-2026-X:** Ratio is currently {ratio}. Smart money accumulation is {smf_score}%.")
+    st.info(f"**Agent ID-2026-X:** Ratio is currently {ratio}. SMF is {smf_score}%.")
     if decision == "ACCUMULATE":
-        st.success("✅ **ACTION:** Priority Accumulation. BTC is currently cheaper than historical Gold parity.")
+        st.success("✅ **ACTION:** Priority Accumulation.")
     else:
-        st.warning("⚠️ **ACTION:** Asset Rotation. Moving 15% of spot BTC into Physical Gold via tokenized RWA.")
+        st.warning("⚠️ **ACTION:** Asset Rotation Advised.")
 
 with c_chart:
-    # Log point for the chart
     if st.button("📌 Log Agent Snapshot"):
-        t = datetime.now().strftime("%H:%M")
-        st.session_state.history.append({"Time": t, "Ratio": ratio, "SMF": smf_score, "Floor": 11.0})
+        t = datetime.now().strftime("%H:%M:%S")
+        # CONSISTENT NAMES: 'Ratio' and 'Floor'
+        st.session_state.history.append({"Time": t, "Ratio": ratio, "Floor": 11.0})
+        st.toast("Snapshot Saved")
     
     if len(st.session_state.history) > 1:
         df = pd.DataFrame(st.session_state.history).set_index("Time")
-        st.line_chart(df[['Ratio', 'Floor']], color=["#00d4ff", "#00ff88"])
+        # Fixed: Checking columns explicitly to avoid KeyError
+        cols_to_show = [c for c in ['Ratio', 'Floor'] if c in df.columns]
+        st.area_chart(df[cols_to_show], color=["#00d4ff", "#00ff88"])
     else:
-        st.caption("Log data to see the Agent's historical tracking.")
+        st.caption("Log 2 snapshots to activate the Trend Engine.")
 
-# --- 5. THE 2026 "AGENTIC COMMERCE" FEED ---
+# --- 5. AGENTIC NEWS ---
 st.divider()
 st.subheader("🌐 Agentic Network & News")
 st.markdown("""
-- **🤖 Agent Network:** 412 Autonomous nodes are currently bidding at the 11.5 ratio level.
-if len(st.session_state.history) > 1:
-        df = pd.DataFrame(st.session_state.history).set_index("Time")
-        
-        # Ensure the columns exist before charting to prevent KeyErrors
-        available_cols = [col for col in ['Ratio', 'Floor'] if col in df.columns]
-        
-        if available_cols:
-            st.area_chart(df[available_cols], color=["#00d4ff", "#00ff88"])
-        else:
-            st.error("Data columns missing. Please log a new point.")
-    else:
-        st.caption("Log data to see the Agent's historical tracking.")
+- **🤖 Agent Network:** 412 Autonomous nodes are bidding at the 11.5 ratio level.
+- **🏛️ Treasury News:** Fed announces 'Agentic Governance' for 2026 liquidity.
+- **⛽ Energy Note:** BTC Hashrate spikes as Texas nuclear miners go online.
+""")
