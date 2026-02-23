@@ -72,9 +72,15 @@ st.divider()
 st.subheader("🌐 Agentic Network & News")
 st.markdown("""
 - **🤖 Agent Network:** 412 Autonomous nodes are currently bidding at the 11.5 ratio level.
-- **🏛️ Treasury News:** Fed announces 'Agentic Governance' framework for stablecoin liquidity.
-- **⛽ Energy Note:** BTC Hashrate spikes as 2026 nuclear-coupled miners come online in Texas.
-""")
 if len(st.session_state.history) > 1:
-    df = pd.DataFrame(st.session_state.history).set_index("Time")
-    st.area_chart(df[['Ratio', 'Target']], color=["#00d4ff", "#ffcc00"])
+        df = pd.DataFrame(st.session_state.history).set_index("Time")
+        
+        # Ensure the columns exist before charting to prevent KeyErrors
+        available_cols = [col for col in ['Ratio', 'Floor'] if col in df.columns]
+        
+        if available_cols:
+            st.area_chart(df[available_cols], color=["#00d4ff", "#00ff88"])
+        else:
+            st.error("Data columns missing. Please log a new point.")
+    else:
+        st.caption("Log data to see the Agent's historical tracking.")
